@@ -1,0 +1,38 @@
+Você é um arquiteto de software experiente. Gere uma ADR completa, clara e útil com base no contexto e nas referências a seguir.
+
+## 📌 Contexto
+{{ contexto }}
+
+## 🔎 Referências
+{{ referencias }}
+
+Agora preencha a ADR no seguinte formato, utilizando os dados fornecidos:
+
+## ADR: [Número Sequencial] - [Título Descritivo]
+
+**Data:** [AAAA-MM-DD]  
+**Status:** [Proposto | Aceito | Deprecado | Substituído]
+
+### Contexto
+...
+
+### Decisão
+...
+
+### Alternativas Consideradas
+...
+
+### Justificativa
+...
+
+### Consequências
+...
+
+### Embasamento Técnico
+...
+
+### ADRs Relacionadas
+...
+
+### Revisões Futuras
+...

@@ -1,0 +1,101 @@
+## ADR: 001 - CQRS e EDA para Otimização de Consultas
+
+**Data:** 2025-07-20
+**Status:** Proposto
+
+### Contexto
+
+O cliente deseja implementar o padrão CQRS (Command Query Responsibility Segregation) para otimizar as operações de consulta em um sistema baseado em arquitetura orientada a eventos (EDA). A motivação principal é a possibilidade de introduzir cache e otimizações específicas para as operações de leitura, sem impactar o desempenho das operações de escrita. No entanto, a complexidade e o custo de implementação do CQRS precisam ser cuidadosamente avaliados. O objetivo principal é analisar a viabilidade do CQRS para otimizar consultas, focando no desenvolvimento.
+
+### Decisão
+
+Adotaremos o padrão CQRS, utilizando o padrão Event-Carried State Transfer (ECST) para propagar as atualizações de estado entre os microsserviços.  Implementaremos uma camada de leitura otimizada, utilizando um banco de dados específico para consultas.
+
+### Alternativas Consideradas
+
+*   **Event Notification puro:**
+    *   **Prós:** Mensagens leves, menor carga na malha de eventos.
+    *   **Contras:** Necessita de chamadas de recuperação de estado (chaining/sincronização), aumenta o acoplamento entre produtores e consumidores, impactando a autonomia dos microsserviços.
+
+*   **Event-Carried State Transfer (ECST):**
+    *   **Prós:** Reduz a dependência entre serviços, evita consultas adicionais para reconstrução de estado, melhora a resiliência do sistema.
+    *   **Contras:** Mensagens maiores, maior carga na malha de eventos (Kafka), riscos de inconsistência se não houver versionamento ou schema registry.
+
+### Justificativa
+
+*   A maioria dos serviços consumidores não possui acesso direto à base de dados do produtor, impossibilitando a utilização do padrão Event Notification puro.
+*   ECST reduz a complexidade dos consumidores, simplificando a lógica de processamento de eventos.
+*   A equipe já possui conhecimento prévio em Avro e Schema Registry, mitigando os riscos associados ao versionamento de schemas e garantindo a compatibilidade entre os eventos.
+*   A utilização de um banco de dados otimizado para leitura permitirá otimizar as consultas, atendendo aos requisitos de desempenho do cliente.
+
+### Consequências
+
+**Positivas:**
+
+*   Ganho em autonomia dos microsserviços, permitindo que cada serviço evolua de forma independente.
+*   Melhora significativa no desempenho das consultas, devido à utilização de um banco de dados otimizado para leitura e à possibilidade de introduzir cache.
+*   Escalabilidade aprimorada, pois a camada de leitura pode ser escalada independentemente da camada de escrita.
+
+**Negativas:**
+
+*   Maior carga na malha de eventos (Kafka), exigindo um planejamento cuidadoso da capacidade da infraestrutura.
+*   Necessidade de controle de versionamento explícito nos eventos, utilizando um Schema Registry para garantir a compatibilidade entre os diferentes serviços.
+*   Complexidade adicional na arquitetura, exigindo um maior esforço de desenvolvimento e manutenção.
+*   Possibilidade de inconsistências eventuais entre a camada de escrita e a camada de leitura. A estratégia para lidar com essas inconsistências incluirá o uso de retries, dead-letter queues e, em casos críticos, compensações.
+
+### Embasamento Técnico
+
+*   **CQRS (Command Query Responsibility Segregation):** Padrão de arquitetura que separa as operações de escrita (Commands) das operações de leitura (Queries).
+*   **EDA (Event-Driven Architecture):** Arquitetura orientada a eventos, onde os serviços se comunicam através da emissão e consumo de eventos.
+*   **Event Notification:** Padrão de comunicação onde os eventos apenas informam que algo aconteceu, sem carregar o estado da entidade.
+*   **Event-Carried State Transfer (ECST):** Padrão de comunicação onde os eventos carregam o estado completo da entidade no momento da emissão.
+*   **Avro:** Formato de serialização de dados que oferece suporte a evolução de schemas.
+*   **Schema Registry:** Repositório centralizado para armazenar e gerenciar schemas Avro.
+*   **Kafka:** Plataforma de streaming de eventos distribuída e escalável.
+
+### ADRs Relacionadas
+
+*   ADR-012: Estratégia de Comunicação por Eventos — Event Notification vs Event-Carried State Transfer (Status: Aceita).
+
+### Restrições/Limitações
+
+*   **Tempo:** O tempo disponível para a implementação do CQRS é limitado a [Definir prazo].
+*   **Orçamento:** O orçamento disponível para a implementação do CQRS é de R$ [Valor].
+*   **Habilidades da Equipe:** A equipe possui conhecimento limitado em CQRS. Será necessário um plano de treinamento específico para capacitar a equipe, incluindo workshops e acompanhamento de um especialista em CQRS.
+*   **Infraestrutura:** A infraestrutura Kafka utilizada é a versão [Versão do Kafka] e o Schema Registry é a versão [Versão do Schema Registry].
+*   **Consistência:** A consistência eventual entre a camada de escrita e a camada de leitura é aceitável, desde que as inconsistências sejam resolvidas em um tempo razoável (até [Definir tempo máximo]).
+
+### Critérios de Sucesso
+
+*   Reduzir o tempo de resposta das consultas mais frequentes (listar produtos, detalhes do pedido) em 50%.
+*   Aumentar a escalabilidade da camada de leitura em 100%, permitindo atender a um maior número de usuários simultâneos.
+*   Manter a taxa de erros da camada de leitura abaixo de 0.1%.
+*   Garantir a consistência eventual dos dados em um tempo máximo de [Definir tempo máximo].
+
+### Detalhes da Implementação
+
+*   **Serialização:** Utilizar o formato Avro para serializar os eventos, garantindo a compatibilidade entre os diferentes serviços.
+*   **Schema Registry:** Utilizar o Schema Registry para armazenar e gerenciar os schemas Avro, facilitando a evolução dos schemas e evitando problemas de compatibilidade.
+*   **Versionamento:** Implementar um esquema de versionamento explícito nos eventos, utilizando o Schema Registry para garantir a compatibilidade entre as diferentes versões.
+*   **Camada de Leitura:** Utilizar o [Escolher banco de dados: Redis, Elasticsearch, etc.] como banco de dados otimizado para leitura. A escolha se justifica por [Justificativa da escolha do banco de dados: alta performance em consultas, suporte a indexação, etc.].
+*   **Monitoramento:** Implementar um sistema de monitoramento abrangente para monitorar o desempenho da camada de leitura, a taxa de erros e a consistência dos dados.
+
+### Revisões Futuras
+
+*   Avaliar a necessidade de introduzir cache na camada de leitura para melhorar ainda mais o desempenho das consultas.
+*   Analisar a possibilidade de utilizar outras tecnologias para a camada de leitura, como bancos de dados NoSQL ou soluções de indexação especializadas.
+*   Revisar a estratégia de tratamento de inconsistências, caso a taxa de inconsistências seja superior ao esperado.
+*   Considerar a adoção de outras estratégias de comunicação entre os microsserviços, como gRPC ou GraphQL.
+
+**Diagrama (Exemplo):**
+
+```
+[Command] --> [Serviço de Escrita] --> [Banco de Dados de Escrita]
+                                          |
+                                          v (Evento ECST)
+                                          |
+                                          v (Kafka)
+                                          |
+                                          v
+[Serviço de Leitura] --> [Banco de Dados de Leitura (Otimizado)] --> [Query]
+```
