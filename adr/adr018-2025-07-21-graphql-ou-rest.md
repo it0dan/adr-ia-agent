@@ -1,4 +1,4 @@
-## ADR: 001 - Escolha entre GraphQL e REST para APIs
+## ADR: 018 - Escolha entre GraphQL e REST para APIs
 
 **Data:** 2025-07-21
 **Status:** Proposto

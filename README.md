@@ -44,7 +44,7 @@ pip install -r requirements.txt
 Crie um arquivo `.env` com sua chave de API, exemplo:
 
 ```env
-GOOGLE_API_KEY=...
+GEMINI_API_KEY=...
 ```
 
 ### 3. Execute o agente
@@ -60,7 +60,6 @@ python src/main.py
 - [LangChain](https://www.langchain.com/)
 - [Google Generative AI (Gemini)](https://ai.google.dev/)
 - [FAISS](https://github.com/facebookresearch/faiss)
-- [Python-dotenv](https://pypi.org/project/python-dotenv/)
 - [Typer](https://typer.tiangolo.com/)
 
 ---

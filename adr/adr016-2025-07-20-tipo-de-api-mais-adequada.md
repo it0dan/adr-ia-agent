@@ -1,4 +1,4 @@
-## ADR: 015 - Escolha do Tipo de API para Exposição de Dados
+## ADR: 016 - Escolha do Tipo de API para Exposição de Dados
 
 **Data:** 2025-07-20
 **Status:** Proposto
